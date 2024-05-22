@@ -55,9 +55,11 @@ SPEC, BACKEND, TYPE, HOST, USER and PORT are required by auth-source."
       (let ((got-secret
              (string-trim
               (shell-command-to-string
-               (format "%s read op://%s"
+               (format "%s item get %s --vault %s --fields label=%s"
                        auth-source-1password-executable
-                       (shell-quote-argument (funcall auth-source-1password-construct-secret-reference backend type host user port)))))))
+                       (shell-quote-argument host)
+                       (shell-quote-argument auth-source-1password-vault)
+                       (shell-quote-argument user))))))
         (list (list :user user
                     :secret got-secret)))
     ;; If not executable was found, return nil and show a warning
