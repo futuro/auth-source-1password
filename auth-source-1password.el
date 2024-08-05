@@ -55,7 +55,7 @@ SPEC, BACKEND, TYPE, HOST, USER and PORT are required by auth-source."
       (let ((got-secret
              (string-trim
               (shell-command-to-string
-               (format "%s item get %s --vault %s --fields label=%s"
+               (format "%s item get %s --vault %s --fields label=%s --reveal"
                        auth-source-1password-executable
                        (shell-quote-argument host)
                        (shell-quote-argument auth-source-1password-vault)
