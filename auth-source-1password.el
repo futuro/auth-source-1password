@@ -49,7 +49,7 @@ by host and user."
 (cl-defun auth-source-1password-search (&rest spec
                                            &key backend type host user port
                                            &allow-other-keys)
-  "Searche 1password for the specified user and host.
+  "Search 1password for the specified user and host.
 SPEC, BACKEND, TYPE, HOST, USER and PORT are required by auth-source."
   (if (executable-find auth-source-1password-executable)
       (let ((got-secret
