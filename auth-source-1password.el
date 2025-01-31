@@ -46,6 +46,15 @@ Usually starting with the `auth-source-1password-vault', followed
 by host and user."
   (mapconcat #'identity (list auth-source-1password-vault host user) "/"))
 
+;; TODO: The current approach of requiring the hostname be the item name is both limiting, and also
+;; makes the UX worse for me in 1Password, so I'd like to move to something else, though I'm not
+;; exactly sure what yet.
+;;
+;; 1Password's CLI doesn't have a `search' command, and as such I'm rolling a couple ideas around in
+;; my head.
+;; 1. Fetch every item in a vault as JSON and do filtering after the fact.
+;; 2. Define a tagging specification for items in 1Password that are made up of the search spec
+;;    fields, and apply those to the item I care about
 (cl-defun auth-source-1password-search (&rest spec
                                            &key backend type host user port
                                            &allow-other-keys)
