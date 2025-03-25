@@ -35,17 +35,6 @@
   :type 'string
   :group 'auth-source-1password)
 
-(defcustom auth-source-1password-construct-secret-reference 'auth-source-1password--1password-construct-query-path
-  "Function to construct the query path in the 1password store."
-  :type 'function
-  :group 'auth-source-1password)
-
-(defun auth-source-1password--1password-construct-query-path (_backend _type host user _port)
-  "Construct the full entry-path for the 1password entry for HOST and USER.
-Usually starting with the `auth-source-1password-vault', followed
-by host and user."
-  (mapconcat #'identity (list auth-source-1password-vault host user) "/"))
-
 ;; TODO: The current approach of requiring the hostname be the item name is both limiting, and also
 ;; makes the UX worse for me in 1Password, so I'd like to move to something else, though I'm not
 ;; exactly sure what yet.
