@@ -83,7 +83,7 @@ SPEC, BACKEND, TYPE, HOST, USER and PORT are required by auth-source."
 (defvar auth-source-1password-backend
   (auth-source-backend
    :source "."
-   :type 'password-store
+   :type '1password
    :search-function #'auth-source-1password-search))
 
 (defun auth-source-1password-backend-parse (entry)
