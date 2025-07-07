@@ -18,6 +18,9 @@
 
 ;;; Code:
 (require 'auth-source)
+(require 'cl-lib)
+(require 'url)
+(require 'dash)
 
 (defgroup auth-source-1password nil
   "1password auth source settings."
@@ -35,6 +38,97 @@
   :type 'string
   :group 'auth-source-1password)
 
+(defun auth-source-1password--list-items-in-vault (vault)
+  (-> "%s item list --vault %s --format json"
+      (format auth-source-1password-executable
+              (shell-quote-argument auth-source-1password-vault))
+      (shell-command-to-string)
+      (json-parse-string :object-type 'plist :array-type 'list)))
+
+(defun auth-source-1password--update-plist-property (plist property f)
+  "TODO: write a docstring"
+  (plist-put plist property (funcall f (plist-get plist property))))
+
+(defun auth-source-1password--item-has-host? (item host)
+  (->> (plist-get item :urls)
+       (--some? (string-equal host (plist-get it :href)))))
+
+(defun auth-source-1password--all-items-for-host (items host)
+  (->> items
+       (--filter (auth-source-1password--item-has-host? it host))))
+
+(defun auth-source-1password--first-item-for-host (items host)
+  (->> items
+       (--first (auth-source-1password--item-has-host? it host))))
+
+;; TODO: update this to also take a list of `op item list' item plists (turned into JSON first)
+;; N.B. the `op item get' command only takes a list of json objects on stdin
+(defun auth-source-1password--op-get-item (item-id)
+  (-> (format "%s item get %s --vault %s --format json"
+              auth-source-1password-executable
+              (shell-quote-argument item-id)
+              (shell-quote-argument auth-source-1password-vault))
+      (shell-command-to-string)
+      (json-parse-string :object-type 'plist :array-type 'list)
+      (auth-source-1password--obfuscate-concealed-fields)))
+
+(defun auth-source-1password--concealed-field? (field-plist)
+  (string-equal "CONCEALED" (plist-get field-plist :type)))
+
+(defun auth-source-1password--obfuscate-field-value (field-plist)
+  (plist-put field-plist :value
+             (let* ((v (auth-source--obfuscate (plist-get field-plist :value))))
+               (lambda ()
+                 (auth-source--deobfuscate v)))))
+
+(defun auth-source-1password--obfuscate-concealed-fields (item-plist)
+  (auth-source-1password--update-plist-property
+   item-plist
+   :fields
+   (lambda (fields)
+     (-map-when 'auth-source-1password--concealed-field?
+                'auth-source-1password--obfuscate-field-value
+                fields))))
+
+(defun auth-source-1password--do-debug (&rest msg)
+  "Call `auth-source-do-debug' with MSG and a prefix."
+  (apply #'auth-source-do-debug
+         (cons (concat "auth-source-1password: " (car msg))
+               (cdr msg))))
+
+;; (->>
+;;  (-> (auth-source-1password--op-get-item "vjg2k2a3vrkynyqnwm4mkrlpqu")
+;; (auth-source-1password--update-plist-property
+;;       :fields
+;;       (lambda (fields)
+;;         (-map-when 'auth-source-1password--concealed-field?
+;;                    'auth-source-1password--obfuscate-field-value
+;;                    fields)))
+;;      (plist-get :fields))
+;;  (-filter 'auth-source-1password--concealed-field?)
+;;  (--map (plist-get it :value))
+;;  (-map 'funcall)
+;;  )
+
+;; (defvar foobarbaz nil)
+
+;; (->> (auth-source-1password--obfuscate-field-value '(:value "foobarbaz"))
+;;      (auth-source--aput 'foobarbaz 'ttt)
+;;      )
+
+;; (lambda (x) "foo")
+
+;; (-> (auth-source-1password--list-items-in-vault auth-source-1password-vault)
+;;     (auth-source-1password--first-item-for-host "smtp.gmail.com")
+;;     (plist-get :id)
+;;     (auth-source-1password--op-get-item))
+
+;; (-> (-first #'auth-source-1password--concealed-field?
+;;          (-> (auth-source-1password--op-get-item "vjg2k2a3vrkynyqnwm4mkrlpqu")
+;;              (plist-get :fields)))
+;;     (plist-get :value)
+;;     (funcall))
+
 ;; TODO: The current approach of requiring the hostname be the item name is both limiting, and also
 ;; makes the UX worse for me in 1Password, so I'd like to move to something else, though I'm not
 ;; exactly sure what yet.
@@ -44,6 +138,10 @@
 ;; 1. Fetch every item in a vault as JSON and do filtering after the fact.
 ;; 2. Define a tagging specification for items in 1Password that are made up of the search spec
 ;;    fields, and apply those to the item I care about
+
+;; (->> (auth-source-1password--list-items-in-vault auth-source-1password-vault)
+;;      (--filter (string-equal-ignore-case (plist-get it :category) "login")))
+
 (cl-defun auth-source-1password-search (&rest spec
                                            &key backend type host user port
                                            &allow-other-keys)
