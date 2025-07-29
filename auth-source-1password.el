@@ -171,6 +171,22 @@
                                (-first #'1pass--credential-field?))))
     (plist-get credential-plist :value)))
 
+(defun 1pass--make-keyword (o)
+  (cond
+   ((keywordp o)
+    o)
+   ((stringp o)
+    (make-symbol (concat ":" o)))
+   (t
+    (user-error "Argument `o' should be either a keyword or a string, received arg of type %S"
+                (type-of o)))))
+
+(defun 1pass--extract-item-fields (item-plist)
+  "Given an ITEM-PLIST as returned by `1pass--op-get-item', return a single
+plist mapping the field labels to their respective field values."
+  (--mapcat (list (1pass--make-keyword (plist-get it :label)) (plist-get it :value))
+            (plist-get item-plist :fields)))
+
 (cl-defun auth-source-1password-search (&rest spec
                                            &key backend type host user port
                                            &allow-other-keys)
