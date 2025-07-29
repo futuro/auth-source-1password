@@ -28,12 +28,12 @@
   :tag "auth-source-1password"
   :prefix "1password-")
 
-(defcustom auth-source-1password-vault "Personal"
+(defcustom 1pass-vault "Personal"
   "1Password vault to use when searching for secrets."
   :type 'string
   :group 'auth-source-1password)
 
-(defcustom auth-source-1password-executable "op"
+(defcustom 1pass-executable "op"
   "Executable used for 1password."
   :type 'string
   :group 'auth-source-1password)
@@ -162,25 +162,25 @@ SPEC, BACKEND, TYPE, HOST, USER and PORT are required by auth-source."
     (warn "`auth-source-1password': Could not find executable '%s' to query 1password" auth-source-1password-executable)))
 
 ;;;###autoload
-(defun auth-source-1password-enable ()
+(defun 1pass-enable ()
   "Enable the 1password auth source."
   (add-to-list 'auth-sources '1password)
   (auth-source-forget-all-cached))
 
-(defvar auth-source-1password-backend
+(defvar 1pass-backend
   (auth-source-backend
    :source "."
    :type '1password
-   :search-function #'auth-source-1password-search))
+   :search-function #'1pass-search))
 
-(defun auth-source-1password-backend-parse (entry)
+(defun 1pass-backend-parse (entry)
   "Create a 1password auth-source backend from ENTRY."
   (when (eq entry '1password)
-    (auth-source-backend-parse-parameters entry auth-source-1password-backend)))
+    (auth-source-backend-parse-parameters entry 1pass-backend)))
 
 (if (boundp 'auth-source-backend-parser-functions)
-    (add-hook 'auth-source-backend-parser-functions #'auth-source-1password-backend-parse)
-  (advice-add 'auth-source-backend-parse :before-until #'auth-source-1password-backend-parse))
+    (add-hook 'auth-source-backend-parser-functions #'1pass-backend-parse)
+  (advice-add 'auth-source-backend-parse :before-until #'1pass-backend-parse))
 
 (provide 'auth-source-1password)
 ;;; auth-source-1password.el ends here
