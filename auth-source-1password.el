@@ -21,6 +21,7 @@
 (require 'cl-lib)
 (require 'url)
 (require 'dash)
+(require 'seq)
 
 (defgroup auth-source-1password nil
   "1password auth source settings."
@@ -64,13 +65,14 @@
   "TODO: write a docstring"
   (plist-put plist property (funcall f (plist-get plist property))))
 
-(defun auth-source-1password--item-has-host? (item host)
+(defun 1pass--item-has-host? (item host)
   (->> (plist-get item :urls)
-       (--some? (string-equal host (plist-get it :href)))))
+       (seq-some (lambda (elt) (string-equal host (plist-get elt :href))))))
 
-(defun auth-source-1password--all-items-for-host (items host)
-  (->> items
-       (--filter (auth-source-1password--item-has-host? it host))))
+(defun 1pass--all-items-for-host (items host)
+  (seq-into (->> items
+                 (seq-filter (lambda (elt) (1pass--item-has-host? elt host))))
+            'vector))
 
 (defun auth-source-1password--first-item-for-host (items host)
   (->> items
