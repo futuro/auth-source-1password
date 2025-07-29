@@ -89,22 +89,22 @@
       (json-parse-string :object-type 'plist :array-type 'list)
       (auth-source-1password--obfuscate-concealed-fields)))
 
-(defun auth-source-1password--concealed-field? (field-plist)
+(defun 1pass--concealed-field? (field-plist)
   (string-equal "CONCEALED" (plist-get field-plist :type)))
 
-(defun auth-source-1password--obfuscate-field-value (field-plist)
+(defun 1pass--obfuscate-field-value (field-plist)
   (plist-put field-plist :value
              (let* ((v (auth-source--obfuscate (plist-get field-plist :value))))
                (lambda ()
                  (auth-source--deobfuscate v)))))
 
-(defun auth-source-1password--obfuscate-concealed-fields (item-plist)
-  (auth-source-1password--update-plist-property
+(defun 1pass--obfuscate-concealed-fields (item-plist)
+  (1pass--update-plist-property
    item-plist
    :fields
    (lambda (fields)
-     (-map-when 'auth-source-1password--concealed-field?
-                'auth-source-1password--obfuscate-field-value
+     (-map-when '1pass--concealed-field?
+                '1pass--obfuscate-field-value
                 fields))))
 
 (defun auth-source-1password--do-debug (&rest msg)
