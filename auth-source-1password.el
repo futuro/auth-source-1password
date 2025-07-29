@@ -122,6 +122,32 @@
      nil)
     (:success error-or-result)))
 
+(defun 1pass--op-get-items (items)
+  (with-temp-buffer
+    (json-insert items)
+    (call-shell-region
+     (point-min) (point-max)
+     ;; I don't know exactly why, but the `1password-cli' doesn't recognize that
+     ;; we're passing it data on stdin when we use just `call-process' to pass the
+     ;; json objects in. Instead of digging in to why that is -- whether it's an
+     ;; issue with `1password-cli', with how emacs spawns the process, or something
+     ;; else -- I've opted to use a shell command with a pipe, as I know that
+     ;; works.
+     (format "cat | %s item get - --format json" 1pass-executable)
+     t ;; Delete the text in range
+     t ;; Replace it with the output of the command
+     )
+    (let (found-items '())
+      ;; Move the point into place for `json-parse-buffer'
+      (goto-char (point-min))
+      ;; Here we're changing the array conversion to use a list, since we don't need to re-serialize
+      ;; the vault items, and working with lists is easier.
+      (while-let ((parsed-item (1pass--json-parse-buffer
+                                :object-type 'plist :array-type 'list)))
+        (setq found-items
+              (cons (1pass--obfuscate-concealed-fields parsed-item) found-items)))
+      found-items)))
+
 (cl-defun auth-source-1password-search (&rest spec
                                            &key backend type host user port
                                            &allow-other-keys)
