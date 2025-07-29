@@ -206,19 +206,57 @@ ones and overrule settings in the other lists."
                               &allow-other-keys)
   "Search 1password for the specified user and host.
 SPEC, BACKEND, TYPE, HOST, USER and PORT are required by auth-source."
-  (if (executable-find auth-source-1password-executable)
-      (let ((got-secret
-             (string-trim
-              (shell-command-to-string
-               (format "%s item get %s --vault %s --fields label=%s --reveal"
-                       auth-source-1password-executable
-                       (shell-quote-argument host)
-                       (shell-quote-argument auth-source-1password-vault)
-                       (shell-quote-argument user))))))
-        (list (list :user user
-                    :secret got-secret)))
-    ;; If not executable was found, return nil and show a warning
-    (warn "`auth-source-1password': Could not find executable '%s' to query 1password" auth-source-1password-executable)))
+
+  (cl-assert (executable-find 1pass-executable)
+             t "auth-source-1password: Could not find 1password-cli executable %S")
+
+  (1pass--do-trivia
+   "got spec: %S" spec)
+  (1pass--do-debug
+   "searching in vault %S for entries matching host=%S, user=%S, port=%S"
+   1pass-vault host (or user "") (or port ""))
+  (let* ((vault-items (1pass--list-items-in-vault 1pass-vault))
+         (_ (1pass--do-debug "searching through %d vault items" (length vault-items)))
+
+         (all-items-for-host (-filter #'1pass--item-has-credential-field?
+                                      (-> vault-items
+                                          (1pass--all-items-for-host host)
+                                          (1pass--op-get-items))))
+         (_ (1pass--do-debug "found %d items with credential fields for host %S"
+                             (length all-items-for-host)
+                             host))
+
+         (first-item-for-host (-first-item all-items-for-host))
+         (first-item-for-user (--first (1pass--item-has-username? it user)
+                                       all-items-for-host))
+
+         (best-match (cond
+                      (first-item-for-user
+                       (1pass--do-debug
+                        "Returning first item matching host %S and username %S" host user)
+                       first-item-for-user)
+
+                      (first-item-for-host
+                       (1pass--do-debug
+                        "Couldn't find any items matching both host %S and username %S" host user)
+                       (1pass--do-debug
+                        "Returning first item matching host %S" host)
+                       first-item-for-host)
+
+                      (t
+                       (1pass--do-debug
+                        "Could not find any items for host %S; returning nil" host)
+                       nil)))
+         (extracted-item-fields (1pass--extract-item-fields best-match))
+         (first-credential (1pass--first-credential-value best-match)))
+
+    (when best-match
+      (1pass--merge-plists
+       extracted-item-fields
+       (list :host host
+             :user user
+             :port port
+             :secret first-credential)))))
 
 ;;;###autoload
 (defun 1pass-enable ()
