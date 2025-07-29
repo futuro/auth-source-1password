@@ -159,6 +159,18 @@
        (--some (and (1pass--username-field? it)
                     (1pass--field-username-matches? it username)))))
 
+(defun 1pass--credential-field? (field-plist)
+  (string-equal "credential" (plist-get field-plist :id)))
+
+(defun 1pass--item-has-credential-field? (item-plist)
+  (-some #'1pass--credential-field?
+         (plist-get item-plist :fields)))
+
+(defun 1pass--first-credential-value (item-plist)
+  (let ((credential-plist (->> (plist-get item-plist :fields)
+                               (-first #'1pass--credential-field?))))
+    (plist-get credential-plist :value)))
+
 (cl-defun auth-source-1password-search (&rest spec
                                            &key backend type host user port
                                            &allow-other-keys)
