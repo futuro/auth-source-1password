@@ -184,3 +184,7 @@ SPEC, BACKEND, TYPE, HOST, USER and PORT are required by auth-source."
 
 (provide 'auth-source-1password)
 ;;; auth-source-1password.el ends here
+
+;; Local Variables:
+;; read-symbol-shorthands: (("1pass-" . "auth-source-1password-"))
+;; End:
