@@ -105,6 +105,22 @@
       (json-parse-string :object-type 'plist :array-type 'list)
       (1pass--obfuscate-concealed-fields)))
 
+(defun 1pass--json-parse-buffer (&rest args)
+  (condition-case error-or-result
+      (apply #'json-parse-buffer args)
+    (json-parse-error
+     (1pass--do-debug "Attempted to parse invalid JSON; returning nil.")
+     nil)
+    (json-end-of-file
+     (1pass--do-debug
+      "parsed all json output from 1password; returning nil")
+     nil)
+    (t
+     (1pass--do-debug
+      "Received error %S while trying to parse 1password-cli vault items json; returning nil"
+      (car error-or-result))
+     nil)
+    (:success error-or-result)))
 
 (cl-defun auth-source-1password-search (&rest spec
                                            &key backend type host user port
