@@ -78,17 +78,6 @@
   (->> items
        (--first (1pass--item-has-host? it host))))
 
-;; TODO: update this to also take a list of `op item list' item plists (turned into JSON first)
-;; N.B. the `op item get' command only takes a list of json objects on stdin
-(defun auth-source-1password--op-get-item (item-id)
-  (-> (format "%s item get %s --vault %s --format json"
-              auth-source-1password-executable
-              (shell-quote-argument item-id)
-              (shell-quote-argument auth-source-1password-vault))
-      (shell-command-to-string)
-      (json-parse-string :object-type 'plist :array-type 'list)
-      (auth-source-1password--obfuscate-concealed-fields)))
-
 (defun 1pass--concealed-field? (field-plist)
   (string-equal "CONCEALED" (plist-get field-plist :type)))
 
@@ -106,6 +95,15 @@
      (-map-when '1pass--concealed-field?
                 '1pass--obfuscate-field-value
                 fields))))
+
+(defun 1pass--op-get-item (item-id)
+  (-> (format "%s item get %s --vault %s --format json"
+              1pass-executable
+              (shell-quote-argument item-id)
+              (shell-quote-argument 1pass-vault))
+      (shell-command-to-string)
+      (json-parse-string :object-type 'plist :array-type 'list)
+      (1pass--obfuscate-concealed-fields)))
 
 
 (cl-defun auth-source-1password-search (&rest spec
