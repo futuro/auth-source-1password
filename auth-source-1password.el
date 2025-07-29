@@ -148,6 +148,17 @@
               (cons (1pass--obfuscate-concealed-fields parsed-item) found-items)))
       found-items)))
 
+(defun 1pass--username-field? (field-plist)
+  (string-equal "username" (plist-get field-plist :id)))
+
+(defun 1pass--field-username-matches? (field-plist username)
+  (string-equal username (plist-get field-plist :value)))
+
+(defun 1pass--item-has-username? (item-plist username)
+  (->> (plist-get item-plist :fields)
+       (--some (and (1pass--username-field? it)
+                    (1pass--field-username-matches? it username)))))
+
 (cl-defun auth-source-1password-search (&rest spec
                                            &key backend type host user port
                                            &allow-other-keys)
