@@ -201,9 +201,9 @@ ones and overrule settings in the other lists."
         (setq rtn (plist-put rtn p v))))
     rtn))
 
-(cl-defun auth-source-1password-search (&rest spec
-                                           &key backend type host user port
-                                           &allow-other-keys)
+(cl-defun 1pass-search (&rest spec
+                              &key backend type host user port
+                              &allow-other-keys)
   "Search 1password for the specified user and host.
 SPEC, BACKEND, TYPE, HOST, USER and PORT are required by auth-source."
   (if (executable-find auth-source-1password-executable)
