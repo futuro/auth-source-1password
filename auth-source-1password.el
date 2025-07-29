@@ -38,12 +38,15 @@
   :type 'string
   :group 'auth-source-1password)
 
-(defun auth-source-1password--list-items-in-vault (vault)
+(defun 1pass--list-items-in-vault (vault)
   (-> "%s item list --vault %s --format json"
-      (format auth-source-1password-executable
-              (shell-quote-argument auth-source-1password-vault))
+      (format 1pass-executable
+              (shell-quote-argument 1pass-vault))
       (shell-command-to-string)
-      (json-parse-string :object-type 'plist :array-type 'list)))
+      ;; We keep the default behavior for array conversion, as `json-serialize' -- used when getting
+      ;; vault item details -- and friends will try to treat the array as a plist, which would
+      ;; create the wrong type of JSON element (and also it throws an exception/warning).
+      (json-parse-string :object-type 'plist :array-type 'array)))
 
 (defun auth-source-1password--update-plist-property (plist property f)
   "TODO: write a docstring"
