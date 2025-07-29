@@ -107,57 +107,6 @@
                 '1pass--obfuscate-field-value
                 fields))))
 
-(defun auth-source-1password--do-debug (&rest msg)
-  "Call `auth-source-do-debug' with MSG and a prefix."
-  (apply #'auth-source-do-debug
-         (cons (concat "auth-source-1password: " (car msg))
-               (cdr msg))))
-
-;; (->>
-;;  (-> (auth-source-1password--op-get-item "vjg2k2a3vrkynyqnwm4mkrlpqu")
-;; (auth-source-1password--update-plist-property
-;;       :fields
-;;       (lambda (fields)
-;;         (-map-when 'auth-source-1password--concealed-field?
-;;                    'auth-source-1password--obfuscate-field-value
-;;                    fields)))
-;;      (plist-get :fields))
-;;  (-filter 'auth-source-1password--concealed-field?)
-;;  (--map (plist-get it :value))
-;;  (-map 'funcall)
-;;  )
-
-;; (defvar foobarbaz nil)
-
-;; (->> (auth-source-1password--obfuscate-field-value '(:value "foobarbaz"))
-;;      (auth-source--aput 'foobarbaz 'ttt)
-;;      )
-
-;; (lambda (x) "foo")
-
-;; (-> (auth-source-1password--list-items-in-vault auth-source-1password-vault)
-;;     (auth-source-1password--first-item-for-host "smtp.gmail.com")
-;;     (plist-get :id)
-;;     (auth-source-1password--op-get-item))
-
-;; (-> (-first #'auth-source-1password--concealed-field?
-;;          (-> (auth-source-1password--op-get-item "vjg2k2a3vrkynyqnwm4mkrlpqu")
-;;              (plist-get :fields)))
-;;     (plist-get :value)
-;;     (funcall))
-
-;; TODO: The current approach of requiring the hostname be the item name is both limiting, and also
-;; makes the UX worse for me in 1Password, so I'd like to move to something else, though I'm not
-;; exactly sure what yet.
-;;
-;; 1Password's CLI doesn't have a `search' command, and as such I'm rolling a couple ideas around in
-;; my head.
-;; 1. Fetch every item in a vault as JSON and do filtering after the fact.
-;; 2. Define a tagging specification for items in 1Password that are made up of the search spec
-;;    fields, and apply those to the item I care about
-
-;; (->> (auth-source-1password--list-items-in-vault auth-source-1password-vault)
-;;      (--filter (string-equal-ignore-case (plist-get it :category) "login")))
 
 (cl-defun auth-source-1password-search (&rest spec
                                            &key backend type host user port
