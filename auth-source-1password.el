@@ -74,9 +74,9 @@
                  (seq-filter (lambda (elt) (1pass--item-has-host? elt host))))
             'vector))
 
-(defun auth-source-1password--first-item-for-host (items host)
+(defun 1pass--first-item-for-host (items host)
   (->> items
-       (--first (auth-source-1password--item-has-host? it host))))
+       (--first (1pass--item-has-host? it host))))
 
 ;; TODO: update this to also take a list of `op item list' item plists (turned into JSON first)
 ;; N.B. the `op item get' command only takes a list of json objects on stdin
