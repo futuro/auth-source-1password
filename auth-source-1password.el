@@ -48,7 +48,19 @@
       ;; create the wrong type of JSON element (and also it throws an exception/warning).
       (json-parse-string :object-type 'plist :array-type 'array)))
 
-(defun auth-source-1password--update-plist-property (plist property f)
+(defun 1pass--do-debug (&rest msg)
+  "Call `auth-source-do-debug' with MSG and a prefix."
+  (apply #'auth-source-do-debug
+         (cons (concat "auth-source-1password: " (car msg))
+               (cdr msg))))
+
+(defun 1pass--do-trivia (&rest msg)
+  "Call `auth-source-do-trivia' with MSG and a prefix."
+  (apply #'auth-source-do-trivia
+         (cons (concat "auth-source-1password: " (car msg))
+               (cdr msg))))
+
+(defun 1pass--update-plist-property (plist property f)
   "TODO: write a docstring"
   (plist-put plist property (funcall f (plist-get plist property))))
 
