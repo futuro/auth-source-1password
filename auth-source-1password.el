@@ -251,12 +251,13 @@ SPEC, BACKEND, TYPE, HOST, USER and PORT are required by auth-source."
          (first-credential (1pass--first-credential-value best-match)))
 
     (when best-match
-      (1pass--merge-plists
-       extracted-item-fields
-       (list :host host
-             :user user
-             :port port
-             :secret first-credential)))))
+      (list
+       (1pass--merge-plists
+        extracted-item-fields
+        (list :host host
+              :user user
+              :port port
+              :secret first-credential))))))
 
 ;;;###autoload
 (defun 1pass-enable ()
