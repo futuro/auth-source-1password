@@ -176,7 +176,7 @@
    ((keywordp o)
     o)
    ((stringp o)
-    (make-symbol (concat ":" o)))
+    (intern (concat ":" o)))
    (t
     (user-error "Argument `o' should be either a keyword or a string, received arg of type %S"
                 (type-of o)))))
